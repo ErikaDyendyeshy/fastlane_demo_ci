@@ -1,6 +1,6 @@
 app_identifier("com.fastline.ci")
-apple_id(ENV["APPLE_ID"] || "your-apple-id@example.com")
-team_id(ENV["APPLE_TEAM_ID"] || "YOUR_TEAM_ID")
+apple_id(ENV["APPLE_ID"] || "nutramate.app@gmail.com")
+team_id(ENV["APPLE_TEAM_ID"] || "YQ339GL7HY")
 
 # App Store Connect API key (recommended for CI)
 # Set APP_STORE_CONNECT_API_KEY_PATH or use match / Apple ID password in CI secrets

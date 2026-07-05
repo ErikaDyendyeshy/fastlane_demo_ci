@@ -1,8 +1,8 @@
-git_url(ENV["MATCH_GIT_URL"] || "https://github.com/your-org/certificates.git")
+git_url(ENV["MATCH_GIT_URL"] || "git@github.com:ErikaDyendyeshy/fastlane_demo_ci_match.git")
 storage_mode("git")
 type("appstore")
 app_identifier(["com.fastline.ci"])
-username(ENV["APPLE_ID"] || "your-apple-id@example.com")
+username(ENV["APPLE_ID"] || "nutramate.app@gmail.com")
 
 # Uncomment after configuring match repository:
 # readonly(true)
