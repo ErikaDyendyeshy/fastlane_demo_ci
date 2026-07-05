@@ -6,6 +6,7 @@ default_platform(:ios)
 PROJECT_ROOT = File.expand_path("../..", __dir__)
 APP_IDENTIFIER = "com.fastline.ci"
 IPA_OUTPUT_DIR = File.join(PROJECT_ROOT, "build/ios/ipa")
+XCODEPROJ_PATH = File.join(PROJECT_ROOT, "ios/Runner.xcodeproj")
 
 platform :ios do
   desc "Run Flutter unit/widget tests"
@@ -38,7 +39,23 @@ platform :ios do
     sync_certificates if ENV["USE_MATCH"] == "true" || is_ci
 
     profile_name = ENV["sigh_#{APP_IDENTIFIER}_appstore_profile-name"] || "match AppStore #{APP_IDENTIFIER}"
+    profile_uuid = ENV["sigh_#{APP_IDENTIFIER}_appstore"]
+    profile_path = ENV["sigh_#{APP_IDENTIFIER}_appstore_profile-path"]
     team_id = ENV["sigh_#{APP_IDENTIFIER}_appstore_team-id"] || ENV["APPLE_TEAM_ID"] || "YQ339GL7HY"
+    profile_specifier = profile_uuid || profile_name
+
+    install_provisioning_profile(path: profile_path) if profile_path && !profile_path.empty?
+
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: XCODEPROJ_PATH,
+      targets: ["Runner"],
+      build_configurations: ["Release"],
+      code_sign_identity: "Apple Distribution",
+      profile_name: profile_name,
+      team_id: team_id,
+      bundle_identifier: APP_IDENTIFIER
+    )
 
     sh("cd #{PROJECT_ROOT} && flutter pub get")
     sh("cd #{PROJECT_ROOT} && flutter build ios --release --no-codesign")
@@ -51,14 +68,22 @@ platform :ios do
       output_directory: IPA_OUTPUT_DIR,
       output_name: "Runner.ipa",
       clean: false,
-      include_bitcode: false,
+      skip_profile_detection: true,
+      codesigning_identity: "Apple Distribution",
       export_options: {
         method: "app-store",
         teamID: team_id,
+        signingStyle: "manual",
         provisioningProfiles: {
           APP_IDENTIFIER => profile_name
         }
-      }
+      },
+      xcargs: [
+        "DEVELOPMENT_TEAM=#{team_id}",
+        "CODE_SIGN_STYLE=Manual",
+        "CODE_SIGN_IDENTITY=Apple Distribution",
+        "PROVISIONING_PROFILE_SPECIFIER=#{profile_specifier}"
+      ].join(" ")
     )
   end
 
