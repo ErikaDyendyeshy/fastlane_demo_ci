@@ -8,6 +8,16 @@ APP_IDENTIFIER = "com.fastline.ci"
 IPA_OUTPUT_DIR = File.join(PROJECT_ROOT, "build/ios/ipa")
 XCODEPROJ_PATH = File.join(PROJECT_ROOT, "ios/Runner.xcodeproj")
 
+def app_store_connect_api_key_from_env
+  app_store_connect_api_key(
+    key_id: ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"],
+    issuer_id: ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"],
+    key_filepath: ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"],
+    duration: 1200,
+    in_house: false
+  )
+end
+
 platform :ios do
   desc "Run Flutter unit/widget tests"
   lane :test do
@@ -85,6 +95,7 @@ platform :ios do
 
     upload_to_testflight(
       ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
+      api_key: app_store_connect_api_key_from_env,
       skip_waiting_for_build_processing: true,
       distribute_external: false
     )
@@ -96,6 +107,7 @@ platform :ios do
 
     upload_to_app_store(
       ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
+      api_key: app_store_connect_api_key_from_env,
       skip_metadata: true,
       skip_screenshots: true,
       submit_for_review: false,
