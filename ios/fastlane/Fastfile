@@ -1,0 +1,60 @@
+# Fastlane lanes for iOS (Flutter)
+# Docs: https://docs.fastlane.tools
+
+default_platform(:ios)
+
+PROJECT_ROOT = File.expand_path("../..", __dir__)
+
+platform :ios do
+  desc "Run Flutter unit/widget tests"
+  lane :test do
+    sh("cd #{PROJECT_ROOT} && flutter test")
+  end
+
+  desc "Install CocoaPods dependencies"
+  lane :pods do
+    cocoapods(
+      podfile: File.join(PROJECT_ROOT, "ios/Podfile"),
+      try_repo_update_on_error: true
+    )
+  end
+
+  desc "Sync code signing certificates via match (App Store)"
+  lane :sync_certificates do
+    match(type: "appstore", readonly: is_ci)
+  end
+
+  desc "Build iOS app without code signing (CI smoke build)"
+  lane :build_ci do
+    sh("cd #{PROJECT_ROOT} && flutter build ios --release --no-codesign")
+  end
+
+  desc "Build IPA for App Store / TestFlight"
+  lane :build do
+    sync_certificates if ENV["USE_MATCH"] == "true"
+
+    sh("cd #{PROJECT_ROOT} && flutter build ipa --release --export-method app-store")
+  end
+
+  desc "Upload build to TestFlight"
+  lane :beta do
+    build
+
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      distribute_external: false
+    )
+  end
+
+  desc "Submit to App Store review"
+  lane :release do
+    build
+
+    upload_to_app_store(
+      skip_metadata: true,
+      skip_screenshots: true,
+      submit_for_review: false,
+      precheck_include_in_app_purchases: false
+    )
+  end
+end

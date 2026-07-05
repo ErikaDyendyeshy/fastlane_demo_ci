@@ -1,0 +1,50 @@
+name: Setup Android signing
+description: Decode keystore and create key.properties for release builds
+
+runs:
+  using: composite
+  steps:
+    - name: Decode Android keystore
+      shell: bash
+      env:
+        ANDROID_KEYSTORE_BASE64: ${{ inputs.keystore-base64 }}
+      run: |
+        echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+
+    - name: Create key.properties
+      shell: bash
+      env:
+        ANDROID_KEYSTORE_PASSWORD: ${{ inputs.keystore-password }}
+        ANDROID_KEY_ALIAS: ${{ inputs.key-alias }}
+        ANDROID_KEY_PASSWORD: ${{ inputs.key-password }}
+      run: |
+        cat > android/key.properties <<EOF
+        storePassword=${ANDROID_KEYSTORE_PASSWORD}
+        keyPassword=${ANDROID_KEY_PASSWORD}
+        keyAlias=${ANDROID_KEY_ALIAS}
+        storeFile=app/upload-keystore.jks
+        EOF
+
+    - name: Decode Google Play service account key
+      shell: bash
+      env:
+        GOOGLE_PLAY_JSON_KEY_BASE64: ${{ inputs.play-json-base64 }}
+      run: |
+        echo "$GOOGLE_PLAY_JSON_KEY_BASE64" | base64 --decode > android/fastlane/google-play-key.json
+
+inputs:
+  keystore-base64:
+    description: Base64-encoded upload keystore
+    required: true
+  keystore-password:
+    description: Keystore password
+    required: true
+  key-alias:
+    description: Key alias
+    required: true
+  key-password:
+    description: Key password
+    required: true
+  play-json-base64:
+    description: Base64-encoded Google Play service account JSON
+    required: true

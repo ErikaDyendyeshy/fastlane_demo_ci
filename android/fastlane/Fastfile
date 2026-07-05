@@ -1,0 +1,50 @@
+# Fastlane lanes for Android (Flutter)
+# Docs: https://docs.fastlane.tools
+
+default_platform(:android)
+
+PROJECT_ROOT = File.expand_path("../..", __dir__)
+
+platform :android do
+  desc "Run Flutter unit/widget tests"
+  lane :test do
+    sh("cd #{PROJECT_ROOT} && flutter test")
+  end
+
+  desc "Build release App Bundle (AAB) — required for Google Play"
+  lane :build do
+    sh("cd #{PROJECT_ROOT} && flutter build appbundle --release")
+  end
+
+  desc "Build release APK (local testing only, not accepted by Play Store)"
+  lane :build_apk do
+    sh("cd #{PROJECT_ROOT} && flutter build apk --release")
+  end
+
+  desc "Deploy to Google Play Internal testing track"
+  lane :beta do
+    build
+
+    upload_to_play_store(
+      track: "internal",
+      aab: File.join(PROJECT_ROOT, "build/app/outputs/bundle/release/app-release.aab"),
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: true
+    )
+  end
+
+  desc "Deploy to Google Play Production track"
+  lane :release do
+    build
+
+    upload_to_play_store(
+      track: "production",
+      aab: File.join(PROJECT_ROOT, "build/app/outputs/bundle/release/app-release.aab"),
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+end

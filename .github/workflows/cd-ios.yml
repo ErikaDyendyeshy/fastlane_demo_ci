@@ -1,0 +1,56 @@
+name: CD iOS (Production)
+
+# Manual App Store release. Auto-deploy to TestFlight runs in deploy.yml on push to main.
+on:
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: "Fastlane lane to run"
+        required: true
+        default: release
+        type: choice
+        options:
+          - release
+
+jobs:
+  deploy-ios:
+    name: Deploy to App Store
+    runs-on: macos-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Setup App Store Connect
+        uses: ./.github/actions/setup-app-store-connect
+        with:
+          api-key-base64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+          key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          match-ssh-private-key: ${{ secrets.MATCH_SSH_PRIVATE_KEY }}
+          match-git-url: ${{ secrets.MATCH_GIT_URL }}
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Deploy via Fastlane
+        working-directory: ios
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+        run: bundle exec fastlane ${{ github.event.inputs.lane }}

@@ -1,0 +1,58 @@
+name: CD Android (Production)
+
+# Manual production release. Auto-deploy to Internal track runs in deploy.yml on push to main.
+on:
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: "Fastlane lane to run"
+        required: true
+        default: release
+        type: choice
+        options:
+          - release
+
+jobs:
+  deploy-android:
+    name: Deploy to Google Play Production
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Setup Android signing
+        uses: ./.github/actions/setup-android-signing
+        with:
+          keystore-base64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          keystore-password: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          key-alias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          key-password: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          play-json-base64: ${{ secrets.GOOGLE_PLAY_JSON_KEY_BASE64 }}
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Deploy via Fastlane
+        working-directory: android
+        env:
+          GOOGLE_PLAY_JSON_KEY_PATH: google-play-key.json
+        run: bundle exec fastlane ${{ github.event.inputs.lane }}

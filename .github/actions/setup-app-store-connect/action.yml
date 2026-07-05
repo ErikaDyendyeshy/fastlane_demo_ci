@@ -1,0 +1,54 @@
+name: Setup App Store Connect
+description: Configure App Store Connect API key and optional match SSH access
+
+runs:
+  using: composite
+  steps:
+    - name: Setup App Store Connect API key
+      shell: bash
+      env:
+        APP_STORE_CONNECT_API_KEY_BASE64: ${{ inputs.api-key-base64 }}
+        APP_STORE_CONNECT_KEY_ID: ${{ inputs.key-id }}
+        APP_STORE_CONNECT_ISSUER_ID: ${{ inputs.issuer-id }}
+      run: |
+        mkdir -p ~/.appstoreconnect/private_keys
+        echo "$APP_STORE_CONNECT_API_KEY_BASE64" | base64 --decode > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8
+        echo "APP_STORE_CONNECT_API_KEY_KEY_ID=${APP_STORE_CONNECT_KEY_ID}" >> $GITHUB_ENV
+        echo "APP_STORE_CONNECT_API_KEY_ISSUER_ID=${APP_STORE_CONNECT_ISSUER_ID}" >> $GITHUB_ENV
+        echo "APP_STORE_CONNECT_API_KEY_KEY_FILEPATH=$HOME/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8" >> $GITHUB_ENV
+
+    - name: Setup match SSH key
+      if: inputs.match-ssh-private-key != ''
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ inputs.match-ssh-private-key }}
+
+    - name: Set match flag
+      shell: bash
+      env:
+        MATCH_GIT_URL: ${{ inputs.match-git-url }}
+      run: |
+        if [ -n "$MATCH_GIT_URL" ]; then
+          echo "USE_MATCH=true" >> $GITHUB_ENV
+        else
+          echo "USE_MATCH=false" >> $GITHUB_ENV
+        fi
+
+inputs:
+  api-key-base64:
+    description: Base64-encoded App Store Connect API .p8 key
+    required: true
+  key-id:
+    description: App Store Connect Key ID
+    required: true
+  issuer-id:
+    description: App Store Connect Issuer ID
+    required: true
+  match-ssh-private-key:
+    description: SSH private key for match certificates repo
+    required: false
+    default: ''
+  match-git-url:
+    description: Git URL for match certificates repo
+    required: false
+    default: ''
