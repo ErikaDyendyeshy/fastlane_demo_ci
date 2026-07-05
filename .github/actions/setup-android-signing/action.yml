@@ -31,6 +31,7 @@ runs:
         GOOGLE_PLAY_JSON_KEY_BASE64: ${{ inputs.play-json-base64 }}
       run: |
         echo "$GOOGLE_PLAY_JSON_KEY_BASE64" | base64 --decode > android/fastlane/google-play-key.json
+        test -s android/fastlane/google-play-key.json
 
 inputs:
   keystore-base64:

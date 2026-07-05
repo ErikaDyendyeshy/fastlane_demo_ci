@@ -76,7 +76,7 @@ jobs:
       - name: Deploy to Google Play Internal
         working-directory: android
         env:
-          GOOGLE_PLAY_JSON_KEY_PATH: google-play-key.json
+          GOOGLE_PLAY_JSON_KEY_PATH: fastlane/google-play-key.json
         run: bundle exec fastlane beta
 
   deploy-ios:
