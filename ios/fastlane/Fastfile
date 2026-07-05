@@ -4,6 +4,8 @@
 default_platform(:ios)
 
 PROJECT_ROOT = File.expand_path("../..", __dir__)
+APP_IDENTIFIER = "com.fastline.ci"
+IPA_OUTPUT_DIR = File.join(PROJECT_ROOT, "build/ios/ipa")
 
 platform :ios do
   desc "Run Flutter unit/widget tests"
@@ -31,9 +33,33 @@ platform :ios do
 
   desc "Build IPA for App Store / TestFlight"
   lane :build do
-    sync_certificates if ENV["USE_MATCH"] == "true"
+    setup_ci if is_ci
 
-    sh("cd #{PROJECT_ROOT} && flutter build ipa --release --export-method app-store")
+    sync_certificates if ENV["USE_MATCH"] == "true" || is_ci
+
+    profile_name = ENV["sigh_#{APP_IDENTIFIER}_appstore_profile-name"] || "match AppStore #{APP_IDENTIFIER}"
+    team_id = ENV["sigh_#{APP_IDENTIFIER}_appstore_team-id"] || ENV["APPLE_TEAM_ID"] || "YQ339GL7HY"
+
+    sh("cd #{PROJECT_ROOT} && flutter pub get")
+    sh("cd #{PROJECT_ROOT} && flutter build ios --release --no-codesign")
+
+    gym(
+      workspace: File.join(PROJECT_ROOT, "ios/Runner.xcworkspace"),
+      scheme: "Runner",
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: IPA_OUTPUT_DIR,
+      output_name: "Runner.ipa",
+      clean: false,
+      include_bitcode: false,
+      export_options: {
+        method: "app-store",
+        teamID: team_id,
+        provisioningProfiles: {
+          APP_IDENTIFIER => profile_name
+        }
+      }
+    )
   end
 
   desc "Upload build to TestFlight"
@@ -41,6 +67,7 @@ platform :ios do
     build
 
     upload_to_testflight(
+      ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
       skip_waiting_for_build_processing: true,
       distribute_external: false
     )
@@ -51,6 +78,7 @@ platform :ios do
     build
 
     upload_to_app_store(
+      ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
       skip_metadata: true,
       skip_screenshots: true,
       submit_for_review: false,
