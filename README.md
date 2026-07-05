@@ -70,5 +70,6 @@ cd ios     && bundle exec fastlane build_ci # iOS без підпису
 ## Посилання
 
 - [SETUP.md — інструкція для колег](./SETUP.md)
+- [SETUP.pdf — PDF-версія інструкції](./SETUP.pdf)
 - [Fastlane docs](https://docs.fastlane.tools/)
 - [Flutter deployment](https://docs.flutter.dev/deployment)
