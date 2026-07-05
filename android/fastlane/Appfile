@@ -1,2 +1,2 @@
 json_key_file(ENV["GOOGLE_PLAY_JSON_KEY_PATH"] || "google-play-key.json")
-package_name("com.demo.fastlane_demo")
+package_name("com.fastline.ci")

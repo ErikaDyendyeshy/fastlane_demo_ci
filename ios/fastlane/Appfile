@@ -1,4 +1,4 @@
-app_identifier("com.demo.fastlaneDemo")
+app_identifier("com.fastline.ci")
 apple_id(ENV["APPLE_ID"] || "your-apple-id@example.com")
 team_id(ENV["APPLE_TEAM_ID"] || "YOUR_TEAM_ID")
 

@@ -46,7 +46,7 @@ git push -u origin main
 #### 1.1 Створи додаток у Play Console
 
 1. [Google Play Console](https://play.google.com/console) → Create app
-2. `applicationId` має збігатися з проєктом: `com.demo.fastlane_demo`  
+2. `applicationId` має збігатися з проєктом: `com.fastline.ci`  
    (або зміни в `android/app/build.gradle.kts` і `android/fastlane/Appfile`)
 
 #### 1.2 Створи upload keystore
@@ -85,7 +85,7 @@ GitHub → Settings → Secrets and variables → Actions:
 #### 2.1 Створи додаток у App Store Connect
 
 1. [App Store Connect](https://appstoreconnect.apple.com) → Apps → New App
-2. Bundle ID: `com.demo.fastlaneDemo` (або зміни в Xcode + `ios/fastlane/Appfile`)
+2. Bundle ID: `com.fastline.ci` (має збігатися з Xcode + `ios/fastlane/Appfile`)
 
 #### 2.2 App Store Connect API Key
 
